@@ -1,0 +1,12 @@
+App(
+    appid="skidcity",
+    name="SKIDcity",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="skidcity_app",
+    stack_size=4 * 1024,
+    fap_category="Tools",
+    fap_description="Educational: Don't be a SKID!",
+    fap_author="Flipper Community",
+    fap_version="1.0",
+    fap_icon="icon.png",
+)
