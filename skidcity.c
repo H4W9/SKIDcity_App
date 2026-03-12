@@ -11,10 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SKIDCITY_VERSION "1.1"
+#define SKIDCITY_VERSION "1.2"
 
 /* Scrolling header: full string rotates through a display window */
-#define HEADER_STR  "  SKIDcity v" SKIDCITY_VERSION "  ~  Don't Be A SKID!  "
+#define HEADER_STR  "   SKIDcity v" SKIDCITY_VERSION "  ~  Don't Be A SKID!  "
 #define HEADER_WIN  22  /* characters visible at once */
 
 /* ── Forward-declare all scene handlers via X-macro ── */
@@ -127,254 +127,350 @@ static FuriHalInfraredTxGetDataState
  * EDUCATIONAL TEXT CONTENT
  * ═══════════════════════════════════════════════════════ */
 #define ABOUT_TRAFFIC \
-    "THIS IS EXTREMELY DANGEROUS.\n" \
+    "THIS IS EXTREMELY\n" \
+    "DANGEROUS.\n" \
     "Interfering with traffic\n" \
     "signals can kill people.\n\n" \
-    "18 U.S.C. S1362 - Malicious\n" \
-    "interference with transport\n" \
-    "infrastructure. Federal crime.\n" \
-    "State reckless endangerment\n" \
-    "charges stack on top.\n" \
-    "People HAVE gone to prison.\n\n" \
-    "Traffic lights run on closed\n" \
-    "wired NTCIP networks — not\n" \
-    "Sub-GHz, IR, or NFC. The\n" \
-    "Flipper cannot reach them.\n" \
-    "The 'police strobe' trick\n" \
-    "is a complete urban legend.\n\n" \
-    "LEGAL: Study ITS / NTCIP\n" \
-    "specs, pursue a career in\n" \
-    "traffic or civil engineering,\n" \
-    "or get involved with your\n" \
-    "city's transportation dept."
+    "18 U.S.C. S1362 -\n" \
+    "Malicious interference\n" \
+    "with transport\n" \
+    "infrastructure.\n" \
+    "Federal crime.\n" \
+    "State reckless\n" \
+    "endangerment charges\n" \
+    "stack on top.\n" \
+    "People HAVE gone to\n" \
+    "prison.\n\n" \
+    "Traffic lights run on\n" \
+    "closed wired NTCIP\n" \
+    "networks - not Sub-GHz,\n" \
+    "IR, or NFC. Flipper\n" \
+    "cannot reach them.\n" \
+    "The 'police strobe'\n" \
+    "trick is a complete\n" \
+    "urban legend.\n\n" \
+    "LEGAL: Study ITS/NTCIP\n" \
+    "specs, pursue a career\n" \
+    "in traffic engineering,\n" \
+    "or contact your city's\n" \
+    "transportation dept."
 
 #define ABOUT_WIFI \
     "18 U.S.C. S1030 - CFAA:\n" \
-    "Unauthorized computer access\n" \
-    "= up to 10 yrs federal prison\n" \
-    "per offense + heavy fines.\n\n" \
-    "Deauth, evil-twin, and packet\n" \
-    "flooding attacks destroy\n" \
-    "others' property.\n\n" \
-    "The Flipper cannot do most\n" \
-    "of these without an external\n" \
-    "WiFi dev board anyway.\n\n" \
-    "LEGAL: Use YOUR OWN network.\n" \
-    "Earn CompTIA Sec+, CEH, OSCP."
+    "Unauthorized access.\n" \
+    "First offense: 5 yrs.\n" \
+    "With damage: 10 yrs.\n" \
+    "Heavy fines on top.\n\n" \
+    "Deauth, evil-twin, and\n" \
+    "packet flooding attacks\n" \
+    "destroy others' property.\n\n" \
+    "Flipper cannot do most\n" \
+    "of these without an\n" \
+    "external WiFi dev board.\n\n" \
+    "LEGAL: Use YOUR OWN\n" \
+    "network. Earn CompTIA\n" \
+    "Sec+, CEH, or OSCP."
 
 #define ABOUT_CAR \
-    "18 U.S.C. S2312 - Motor\n" \
-    "Vehicle Theft Act.\n" \
-    "State laws stack on top.\n\n" \
-    "Modern key fobs use ROLLING\n" \
-    "CODES (KeeLoq, AUT64).\n" \
-    "Every press generates a new\n" \
-    "one-time cryptographic code.\n\n" \
-    "The Flipper CAN capture the\n" \
-    "raw Sub-GHz signal. It CANNOT\n" \
-    "break the rolling code crypto.\n" \
-    "Replaying it = DOES NOTHING.\n\n" \
+    "CAR KEY LAWS:\n" \
+    "18 U.S.C. S1029 -\n" \
+    "Access Device Fraud:\n" \
+    "up to 15 yrs.\n" \
+    "State vehicle theft +\n" \
+    "burglary charges stack.\n" \
+    "18 U.S.C. S2312 applies\n" \
+    "if stolen vehicle crosses\n" \
+    "state lines.\n\n" \
+    "Modern fobs use ROLLING\n" \
+    "CODES (KeeLoq, Hitag2,\n" \
+    "DST40). Every press\n" \
+    "generates a new one-time\n" \
+    "cryptographic code.\n\n" \
+    "Flipper CAN capture the\n" \
+    "raw Sub-GHz signal.\n" \
+    "It CANNOT break rolling\n" \
+    "code crypto.\n" \
+    "Replay = useless AND\n" \
+    "risks de-syncing your\n" \
+    "fob so it stops working.\n\n" \
+    "Older FIXED-CODE systems\n" \
+    "(some garage doors,\n" \
+    "cheap legacy fobs):\n" \
+    "replay CAN work.\n" \
+    "That is theft or\n" \
+    "criminal trespass.\n\n" \
+    "REAL THREAT: RELAY\n" \
+    "ATTACKS amplify your\n" \
+    "key's passive signal to\n" \
+    "unlock the car while the\n" \
+    "key is inside your home.\n" \
+    "Flipper can't do this -\n" \
+    "needs two devices\n" \
+    "+ range.\n\n" \
     "LEGAL: Research your OWN\n" \
     "vehicle RF system. Study\n" \
     "automotive cybersecurity."
 
 #define ABOUT_CARDS \
-    "18 U.S.C. S1029 - Access\n" \
-    "Device Fraud: up to 15 yrs\n" \
-    "+ $250,000 fine per count.\n\n" \
-    "EMV chip cards use a new\n" \
-    "cryptographic token every\n" \
-    "transaction. CANNOT be\n" \
-    "cloned or replayed.\n\n" \
-    "LEGAL: Read your OWN NFC\n" \
-    "business card or transit\n" \
-    "card for learning. Study\n" \
-    "ISO/IEC 14443 and NFC specs."
+    "18 U.S.C. S1029 -\n" \
+    "Access Device Fraud:\n" \
+    "up to 15 yrs +\n" \
+    "$250,000 fine per count.\n" \
+    "18 U.S.C. S1344 -\n" \
+    "Bank Fraud: up to 30 yrs.\n" \
+    "Often charged alongside.\n\n" \
+    "EMV CHIP transactions\n" \
+    "use a new cryptographic\n" \
+    "token every time. Cannot\n" \
+    "be cloned or replayed.\n\n" \
+    "HOWEVER: the magstripe\n" \
+    "on the same card CAN be\n" \
+    "skimmed if a terminal\n" \
+    "falls back to swipe mode.\n" \
+    "Still fraud.\n\n" \
+    "LEGAL: Read your OWN\n" \
+    "NFC or transit card for\n" \
+    "learning. Study\n" \
+    "ISO/IEC 14443."
 
 #define ABOUT_DOORS \
-    "Criminal Trespass and\n" \
-    "Burglary carry 5-20+ yrs.\n\n" \
-    "Modern RFID access systems\n" \
-    "(HID, MIFARE Plus, DESFire)\n" \
-    "use AES-128 encryption +\n" \
-    "mutual authentication.\n\n" \
-    "Flipper CAN read legacy 125kHz\n" \
-    "cards (EM4100, HID Prox).\n" \
-    "It CANNOT crack AES-128 or\n" \
-    "forge an authenticated session\n" \
-    "on any modern access system.\n\n" \
-    "LEGAL: Lock sport on locks\n" \
-    "YOU OWN. Only pen-test with\n" \
-    "written authorization."
+    "State criminal trespass\n" \
+    "and burglary: 5-20+ yrs.\n" \
+    "18 U.S.C. S1029 applies\n" \
+    "to cloning access\n" \
+    "devices.\n" \
+    "18 U.S.C. S1030 (CFAA)\n" \
+    "applies if the system is\n" \
+    "networked to a protected\n" \
+    "computer.\n\n" \
+    "Modern RFID systems\n" \
+    "(HID, MIFARE Plus,\n" \
+    "DESFire) use AES-128\n" \
+    "encryption + mutual\n" \
+    "authentication.\n\n" \
+    "Flipper CAN read legacy\n" \
+    "125kHz cards (EM4100,\n" \
+    "HID Prox). It CANNOT\n" \
+    "crack AES-128 or forge\n" \
+    "an authenticated session\n" \
+    "on any modern system.\n\n" \
+    "LEGAL: Lock sport on\n" \
+    "locks YOU OWN. Only\n" \
+    "pen-test with written\n" \
+    "authorization."
 
 #define ABOUT_TV \
     "Controlling your OWN TV\n" \
     "with IR is 100% legal.\n\n" \
     "WHERE IS THE IR LED?\n" \
-    "It\'s the small clear dome\n" \
-    "on the TOP edge of your\n" \
-    "Flipper, NOT the RGB LED\n" \
-    "on the front.\n\n" \
+    "It\'s the small clear\n" \
+    "dome on the TOP edge\n" \
+    "of your Flipper, NOT\n" \
+    "the RGB LED on the front.\n\n" \
     "WHY CAN\'T I SEE IT?\n" \
-    "IR light is ~940nm, outside\n" \
-    "the visible spectrum (380-\n" \
-    "700nm). Human eyes can\'t\n" \
+    "IR light is ~940nm,\n" \
+    "outside the visible\n" \
+    "spectrum (380-700nm).\n" \
+    "Human eyes can\'t\n" \
     "detect it at all.\n\n" \
-    "TIP: Point a phone camera\n" \
-    "at the top IR LED and hold\n" \
-    "OK on the demo screen.\n" \
-    "Most phone cameras can see\n" \
-    "IR - you\'ll see it pulse\n" \
+    "TIP: Point a phone\n" \
+    "camera at the top IR\n" \
+    "LED and hold OK on the\n" \
+    "demo screen. Most phone\n" \
+    "cameras can see IR -\n" \
+    "you\'ll see it pulse\n" \
     "purple/white on screen.\n\n" \
-    "LEGAL USE: Build IR remote\n" \
-    "databases, learn NEC/RC5,\n" \
-    "automate YOUR home setup."
+    "LEGAL USE: Build IR\n" \
+    "remote databases, learn\n" \
+    "NEC/RC5, automate\n" \
+    "YOUR home setup."
 
 #define ABOUT_AIRPLANE \
-    "18 U.S.C. S32 - Interfering\n" \
-    "with aircraft systems.\n" \
-    "Federal crime. Up to 20 yrs.\n\n" \
-    "The Flipper TX power is too\n" \
-    "low (~10 mW) to affect any\n" \
-    "aviation equipment. It also\n" \
-    "cannot transmit on aviation\n" \
-    "bands (108-137 MHz VHF)\n" \
-    "by design.\n\n" \
-    "LEGAL: Get your ham radio\n" \
-    "ticket! Study Part 107 for\n" \
-    "drone certification instead."
+    "18 U.S.C. S32 -\n" \
+    "Interfering with aircraft\n" \
+    "systems. Federal crime.\n" \
+    "Up to 20 yrs.\n\n" \
+    "Flipper cannot transmit\n" \
+    "on aviation bands:\n" \
+    "VHF voice: 118-137 MHz\n" \
+    "VOR/ILS: 108-118 MHz\n" \
+    "This is the real barrier,\n" \
+    "not just power level.\n\n" \
+    "Even if it could reach\n" \
+    "those bands, avionics\n" \
+    "are shielded and\n" \
+    "certified to reject\n" \
+    "interference.\n\n" \
+    "LEGAL: Get your ham\n" \
+    "radio ticket! Study\n" \
+    "Part 107 for drone\n" \
+    "certification instead."
 
 #define ABOUT_JAMMER \
     "47 U.S.C. S333 - FCC:\n" \
-    "Jamming ANY radio signal\n" \
-    "is ILLEGAL. $100k/day fine.\n" \
+    "Jamming ANY signal is\n" \
+    "ILLEGAL. $100k/day fine.\n" \
     "Federal prison possible.\n\n" \
-    "This includes: cell, GPS,\n" \
-    "WiFi, BLE, and especially\n" \
-    "911 emergency services.\n\n" \
-    "The Flipper CANNOT jam cell\n" \
-    "signals - wrong hardware,\n" \
-    "wrong power level.\n\n" \
-    "LEGAL: Get your ham license.\n" \
-    "Build an SDR receiver."
+    "This includes: cell,\n" \
+    "GPS, WiFi, BLE, and\n" \
+    "especially 911 services.\n\n" \
+    "Flipper CANNOT jam cell\n" \
+    "signals - wrong hardware\n" \
+    "and wrong power level.\n\n" \
+    "LEGAL: Get your ham\n" \
+    "license. Build an\n" \
+    "SDR receiver."
 
 #define ABOUT_ATM \
-    "18 U.S.C. S1029 + S1030:\n" \
-    "Bank fraud + unauthorized\n" \
-    "computer access combined.\n" \
-    "15-20 yrs federal prison.\n\n" \
-    "Modern ATMs use EMV + TLS\n" \
-    "encryption. NFC skimming\n" \
-    "does NOT work on chip cards.\n" \
-    "Skimmers need physical\n" \
-    "installation = more crimes.\n\n" \
+    "18 U.S.C. S1029 -\n" \
+    "Access Device Fraud:\n" \
+    "up to 15 yrs.\n" \
+    "18 U.S.C. S1030 - CFAA:\n" \
+    "up to 10-20 yrs.\n" \
+    "18 U.S.C. S1344 -\n" \
+    "Bank Fraud: up to 30 yrs.\n" \
+    "Almost always charged\n" \
+    "alongside the others.\n\n" \
+    "Modern ATMs use EMV +\n" \
+    "TLS encryption. NFC\n" \
+    "skimming does NOT work\n" \
+    "on chip cards. Skimmers\n" \
+    "need physical install\n" \
+    "= even more crimes.\n\n" \
     "Flipper CAN read the NFC\n" \
-    "layer of a card. It CANNOT\n" \
-    "extract the EMV private key\n" \
-    "or forge a transaction token.\n" \
-    "The data it reads is useless\n" \
-    "without the session crypto.\n\n" \
-    "LEGAL: Study for CISA, CISSP,\n" \
-    "or bank security certs."
+    "layer of a card. It\n" \
+    "CANNOT extract the EMV\n" \
+    "private key or forge a\n" \
+    "transaction token. The\n" \
+    "data is useless without\n" \
+    "the session crypto.\n\n" \
+    "NOTE: magstripe can be\n" \
+    "physically skimmed at\n" \
+    "compromised terminals.\n" \
+    "Not a Flipper attack,\n" \
+    "but still very real.\n\n" \
+    "LEGAL: Study for CISA,\n" \
+    "CISSP, or bank certs."
 
 #define ABOUT_RFJAM \
     "47 U.S.C. S333 + Part 15:\n" \
-    "Sub-GHz jamming = FCC felony.\n" \
+    "Sub-GHz jamming =\n" \
+    "FCC felony.\n" \
     "$100,000 fine PER DAY.\n" \
-    "Equipment seizure + prison.\n\n" \
-    "Sub-GHz jamming floods a\n" \
-    "frequency band with noise,\n" \
-    "blocking garage doors,\n" \
-    "key fobs, alarm sensors,\n" \
-    "AND emergency pagers.\n\n" \
-    "Flipper Sub-GHz TX power is\n" \
-    "~10 mW max. It can transmit\n" \
-    "on allowed bands only, and\n" \
-    "is NOT a true jammer.\n\n" \
-    "LEGAL: Get your ham license.\n" \
-    "Use SDR++ to RECEIVE only.\n" \
-    "Study the Sub-GHz protocols\n" \
-    "your garage door actually uses."
+    "Equipment seizure +\n" \
+    "prison.\n\n" \
+    "Sub-GHz jamming floods\n" \
+    "a frequency band with\n" \
+    "noise, blocking garage\n" \
+    "doors, key fobs, alarm\n" \
+    "sensors, and emergency\n" \
+    "pagers.\n\n" \
+    "Flipper Sub-GHz TX is\n" \
+    "~10 mW max. Transmits\n" \
+    "on allowed bands only.\n" \
+    "It is NOT a true jammer.\n\n" \
+    "LEGAL: Get your ham\n" \
+    "license. Use SDR++ to\n" \
+    "RECEIVE only. Study the\n" \
+    "Sub-GHz protocols your\n" \
+    "garage door actually\n" \
+    "uses."
 
 #define ABOUT_BLESPAM \
-    "18 U.S.C. S1030 - CFAA:\n" \
-    "Sending unwanted data to\n" \
-    "devices without consent\n" \
-    "= unauthorized access.\n\n" \
-    "Unlike most items here, the\n" \
+    "Unlike most items here,\n" \
     "Flipper CAN do BLE spam.\n" \
     "It has real BLE hardware.\n" \
-    "That's exactly why you need\n" \
-    "to understand why NOT to.\n\n" \
-    "BLE spam (fake Apple/Android\n" \
-    "pairing popups, Samsung spam)\n" \
-    "is illegal under CFAA and\n" \
-    "computer misuse laws.\n\n" \
-    "It can crash older devices,\n" \
-    "drain batteries, and interfere\n" \
-    "with medical BLE devices like\n" \
-    "insulin pumps and hearing aids.\n\n" \
+    "That's exactly why you\n" \
+    "need to know why NOT to.\n\n" \
+    "LEGAL EXPOSURE:\n" \
+    "18 U.S.C. S1030 (CFAA)\n" \
+    "MAY apply if spam causes\n" \
+    "damage or disruption -\n" \
+    "courts are still setting\n" \
+    "precedent.\n" \
+    "21 U.S.C. S331 (FDA) +\n" \
+    "assault charges apply if\n" \
+    "medical devices are\n" \
+    "harmed.\n\n" \
+    "BLE spam can crash\n" \
+    "devices, drain batteries,\n" \
+    "and interfere with:\n" \
+    "insulin pumps, pacemaker\n" \
+    "monitors, hearing aids,\n" \
+    "CGM sensors.\n\n" \
     "THAT IS NOT A JOKE.\n\n" \
-    "LEGAL: Build real BLE tools.\n" \
-    "Study Bluetooth Core Spec.\n" \
-    "Write your own GATT profiles\n" \
-    "for YOUR OWN projects."
+    "LEGAL: Build real BLE\n" \
+    "tools. Study Bluetooth\n" \
+    "Core Spec. Write your\n" \
+    "own GATT profiles for\n" \
+    "YOUR OWN projects."
 
 #define ABOUT_IRABUSE \
-    "IR CAN be used illegally:\n" \
+    "IR CAN be used illegally.\n" \
     "Most IR remotes have NO\n" \
-    "authentication. Any Flipper\n" \
-    "can send any IR code to any\n" \
-    "device in range.\n\n" \
+    "authentication. Any\n" \
+    "Flipper can send any IR\n" \
+    "code to any device\n" \
+    "in range.\n\n" \
     "ILLEGAL USES:\n" \
-    "- Turning off TVs in public\n" \
+    "- TVs off in public\n" \
     "  (property interference)\n" \
-    "- Disrupting digital signs\n" \
-    "  or public displays\n" \
-    "- Targeting someone\'s home\n" \
-    "  devices without consent\n" \
-    "- Interfering with IR-based\n" \
-    "  medical or safety equipment\n\n" \
+    "- Disrupting digital\n" \
+    "  signs or public\n" \
+    "  displays\n" \
+    "- Targeting someone\'s\n" \
+    "  home devices without\n" \
+    "  consent\n" \
+    "- Interfering with\n" \
+    "  IR medical or safety\n" \
+    "  equipment\n\n" \
     "These range from civil\n" \
-    "liability to criminal mischief\n" \
-    "charges depending on context\n" \
-    "and jurisdiction.\n\n" \
-    "LEGAL: Your OWN devices.\n" \
-    "Build IR databases. Automate\n" \
-    "your own home. With consent."
+    "liability to criminal\n" \
+    "mischief depending on\n" \
+    "context + jurisdiction.\n\n" \
+    "LEGAL: YOUR OWN devices.\n" \
+    "Build IR databases.\n" \
+    "Automate your own home.\n" \
+    "With consent."
 
 #define CFAA_BODY \
-    "Computer Fraud & Abuse Act\n" \
+    "Computer Fraud &\n" \
+    "Abuse Act\n" \
     "18 U.S.C. S1030\n\n" \
     "Prohibits accessing any\n" \
-    "computer, device, or network\n" \
-    "WITHOUT authorization.\n\n" \
+    "computer, device, or\n" \
+    "network WITHOUT\n" \
+    "authorization.\n\n" \
     "PENALTIES:\n" \
-    "  First offense: up to 5 yrs\n" \
-    "  With damage: up to 10 yrs\n" \
-    "  With fraud:  up to 20 yrs\n" \
+    "  First offense: 5 yrs\n" \
+    "  With damage: 10 yrs\n" \
+    "  With fraud:  20 yrs\n" \
     "  + civil suits on top\n\n" \
-    "'I was just testing' is NOT\n" \
-    "a legal defense.\n\n" \
-    "USE YOUR FLIPPER LEGALLY.\n" \
-    "It's an amazing learning tool."
+    "'I was just testing'\n" \
+    "is NOT a legal defense.\n\n" \
+    "USE YOUR FLIPPER\n" \
+    "           LEGALLY.\n" \
+    "It's an amazing tool."
 
 #define APP_ABOUT_BODY \
     "SKIDcity v1.0\n" \
     "\"Don't be a SKID!\"\n\n" \
-    "A Script Kiddie uses tools\n" \
-    "without understanding them\n" \
-    "or the law. Don't be that.\n\n" \
+    "A Script Kiddie uses\n" \
+    "tools without\n" \
+    "understanding them or\n" \
+    "the law. Don't be that.\n\n" \
     "Your Flipper Zero is a\n" \
-    "POWERFUL learning tool for:\n" \
+    "POWERFUL learning tool:\n" \
     "  - Sub-GHz RF protocols\n" \
     "  - NFC / RFID research\n" \
     "  - Infrared databases\n" \
     "  - iButton / 1-Wire\n" \
-    "  - GPIO & hardware hacking\n" \
+    "  - GPIO & hardware\n" \
+    "    hacking\n" \
     "  - BadUSB scripting\n\n" \
-    "Every 'hack' in this app\n" \
-    "has a LEGAL path. Choose it.\n\n" \
+    "Every 'hack' in this\n" \
+    "app has a LEGAL path.\n" \
+    "Choose it.\n\n" \
     "Stay curious. Stay legal."
 
 /* ═══════════════════════════════════════════════════════
@@ -766,7 +862,7 @@ void skidcity_scene_main_menu_on_enter(void* context) {
     app->header_offset = 0;
     skidcity_header_timer_cb(app);
     app->header_timer = furi_timer_alloc(skidcity_header_timer_cb, FuriTimerTypePeriodic, app);
-    furi_timer_start(app->header_timer, 150);
+    furi_timer_start(app->header_timer, 300);     // Scrolling Text speed
 
     for(uint32_t i = 0; i < SkidCityFeatureCount; i++) {
         submenu_add_item(
@@ -776,6 +872,8 @@ void skidcity_scene_main_menu_on_enter(void* context) {
     submenu_add_item(
         app->submenu, "-- About SKIDcity --",
         SkidCityFeatureCount, skidcity_submenu_cb, app);
+
+    submenu_set_selected_item(app->submenu, app->main_menu_selected_index);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, SkidCityViewSubmenu);
 }
@@ -789,7 +887,8 @@ bool skidcity_scene_main_menu_on_event(void* context, SceneManagerEvent event) {
         return true;
     }
     if(event.event < (uint32_t)SkidCityFeatureCount) {
-        app->current_feature = (SkidCityFeature)event.event;
+        app->current_feature             = (SkidCityFeature)event.event;
+        app->feature_menu_selected_index = 0;
         scene_manager_next_scene(app->scene_manager, SkidCitySceneFeatureMenu);
         return true;
     }
@@ -798,6 +897,7 @@ bool skidcity_scene_main_menu_on_event(void* context, SceneManagerEvent event) {
 
 void skidcity_scene_main_menu_on_exit(void* context) {
     SkidCityApp* app = context;
+    app->main_menu_selected_index = submenu_get_selected_item(app->submenu);
     furi_timer_stop(app->header_timer);
     furi_timer_free(app->header_timer);
     app->header_timer = NULL;
@@ -831,6 +931,8 @@ void skidcity_scene_feature_menu_on_enter(void* context) {
             app->submenu, "CFAA / Full Legal Info",
             FEAT_EV_CFAA, skidcity_submenu_cb, app);
     }
+
+    submenu_set_selected_item(app->submenu, app->feature_menu_selected_index);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, SkidCityViewSubmenu);
 }
@@ -885,6 +987,7 @@ bool skidcity_scene_feature_menu_on_event(void* context, SceneManagerEvent event
 
 void skidcity_scene_feature_menu_on_exit(void* context) {
     SkidCityApp* app = context;
+    app->feature_menu_selected_index = submenu_get_selected_item(app->submenu);
     submenu_reset(app->submenu);
 }
 
@@ -1056,11 +1159,13 @@ static SkidCityApp* skidcity_app_alloc(void) {
     SkidCityApp* app = malloc(sizeof(SkidCityApp));
     furi_check(app);
 
-    app->current_feature = SkidCityFeatureTraffic;
-    app->header_timer    = NULL;
-    app->header_offset   = 0;
-    app->ir_blink_timer  = NULL;
-    app->ir_tx_active    = false;
+    app->current_feature          = SkidCityFeatureTraffic;
+    app->header_timer             = NULL;
+    app->header_offset            = 0;
+    app->ir_blink_timer           = NULL;
+    app->ir_tx_active             = false;
+    app->main_menu_selected_index     = 0;
+    app->feature_menu_selected_index  = 0;
 
     /* Core services */
     app->gui           = furi_record_open(RECORD_GUI);

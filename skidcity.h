@@ -117,4 +117,6 @@ typedef struct {
     char             header_buf[32];
     FuriTimer*       ir_blink_timer;
     bool             ir_tx_active;
+    uint32_t         main_menu_selected_index;
+    uint32_t         feature_menu_selected_index;
 } SkidCityApp;
