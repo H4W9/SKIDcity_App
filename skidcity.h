@@ -54,6 +54,7 @@ typedef enum {
     SkidCityFeatureAtm,
     SkidCityFeatureRfJam,
     SkidCityFeatureBleSpam,
+    SkidCityFeatureIrAbuse,
     SkidCityFeatureCount,
 } SkidCityFeature;
 
@@ -78,6 +79,7 @@ typedef struct {
     const char*      menu_label;
     const char*      submenu_header;
     const char*      demo_item;
+    const char*      about_label;  /* sub-menu item text for "about" */
     const char*      about_title;
     const char*      about_body;
     SkidCityDemoType demo_type;
@@ -113,4 +115,6 @@ typedef struct {
     FuriTimer*       header_timer;
     uint8_t          header_offset;
     char             header_buf[32];
+    FuriTimer*       ir_blink_timer;
+    bool             ir_tx_active;
 } SkidCityApp;

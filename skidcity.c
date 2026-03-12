@@ -73,26 +73,54 @@ static const uint32_t skidcity_ir_signal[] = {
 static const size_t skidcity_ir_signal_len =
     sizeof(skidcity_ir_signal) / sizeof(skidcity_ir_signal[0]);
 
-/* ISR state — must survive the async TX callback lifetime */
+/* ISR state — volatile stop flag is the only safe cross-thread signal */
 typedef struct {
-    size_t   pos;
-    bool     done;
+    size_t           pos;
+    volatile bool    stop_requested;
 } SkidCityIrTxState;
 static SkidCityIrTxState skidcity_ir_tx_state;
 
-static void skidcity_ir_isr_cb(void* ctx, bool* last, uint32_t* duration, bool* level) {
+/*
+ * Signature must exactly match FuriHalInfraredTxGetDataISRCallback:
+ *   FuriHalInfraredTxGetDataState (*)(void* ctx, uint32_t* duration, bool* level)
+ *
+ * STOP STRATEGY:
+ * Calling furi_hal_infrared_async_tx_stop() while the ISR is actively
+ * feeding pulses causes a race that freezes the Flipper. The only safe
+ * way to stop is from WITHIN the ISR itself, between pulses.
+ *
+ * The main thread sets stop_requested = true on key release.
+ * The ISR checks the flag at the inter-frame gap (between repeats) and
+ * returns Done there — a safe, quiet moment with no carrier active.
+ * The main thread then calls stop() AFTER the ISR has returned Done,
+ * which is a no-op that completes instantly without a race.
+ *
+ * A 40ms silent gap is inserted between repeats (NEC inter-frame spacing).
+ */
+#define SKIDCITY_IR_GAP_US 40000UL
+
+static FuriHalInfraredTxGetDataState
+    skidcity_ir_isr_cb(void* ctx, uint32_t* duration, bool* level) {
     UNUSED(ctx);
     SkidCityIrTxState* s = &skidcity_ir_tx_state;
+
+    /* Between frames: check stop flag — safe to return Done here */
     if(s->pos >= skidcity_ir_signal_len) {
-        *last     = true;
-        *duration = 0;
+        if(s->stop_requested) {
+            *duration = 0;
+            *level    = false;
+            return FuriHalInfraredTxGetDataStateDone;
+        }
+        /* Not stopping: insert inter-frame gap then restart */
+        s->pos    = 0;
+        *duration = SKIDCITY_IR_GAP_US;
         *level    = false;
-        s->done   = true;
-        return;
+        return FuriHalInfraredTxGetDataStateOk;
     }
-    *level    = (s->pos % 2 == 0); /* even = mark */
+
+    *level    = (s->pos % 2 == 0); /* even index = mark (carrier on) */
     *duration = skidcity_ir_signal[s->pos++];
-    *last     = (s->pos >= skidcity_ir_signal_len);
+    return FuriHalInfraredTxGetDataStateOk;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -287,6 +315,29 @@ static void skidcity_ir_isr_cb(void* ctx, bool* last, uint32_t* duration, bool* 
     "Write your own GATT profiles\n" \
     "for YOUR OWN projects."
 
+#define ABOUT_IRABUSE \
+    "IR CAN be used illegally:\n" \
+    "Most IR remotes have NO\n" \
+    "authentication. Any Flipper\n" \
+    "can send any IR code to any\n" \
+    "device in range.\n\n" \
+    "ILLEGAL USES:\n" \
+    "- Turning off TVs in public\n" \
+    "  (property interference)\n" \
+    "- Disrupting digital signs\n" \
+    "  or public displays\n" \
+    "- Targeting someone\'s home\n" \
+    "  devices without consent\n" \
+    "- Interfering with IR-based\n" \
+    "  medical or safety equipment\n\n" \
+    "These range from civil\n" \
+    "liability to criminal mischief\n" \
+    "charges depending on context\n" \
+    "and jurisdiction.\n\n" \
+    "LEGAL: Your OWN devices.\n" \
+    "Build IR databases. Automate\n" \
+    "your own home. With consent."
+
 #define CFAA_BODY \
     "Computer Fraud & Abuse Act\n" \
     "18 U.S.C. S1030\n\n" \
@@ -329,6 +380,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Hack Traffic Lights",
         .submenu_header = "Traffic Lights",
         .demo_item      = "Traffic Light Demo",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Traffic Light Facts",
         .about_body     = ABOUT_TRAFFIC,
         .demo_type      = SkidCityDemoTrafficLed,
@@ -337,6 +389,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Crash WiFi Networks",
         .submenu_header = "WiFi Attacks",
         .demo_item      = "Launch Deauth Attack",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "WiFi Attacks & CFAA",
         .about_body     = ABOUT_WIFI,
         .demo_type      = SkidCityDemoBanned,
@@ -345,6 +398,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Steal Car Keys",
         .submenu_header = "Car Key Attacks",
         .demo_item      = "Replay Attack",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Car Key Attack Laws",
         .about_body     = ABOUT_CAR,
         .demo_type      = SkidCityDemoBanned,
@@ -353,6 +407,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Clone Credit Cards",
         .submenu_header = "Payment Card Cloning",
         .demo_item      = "Clone Any Card",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Payment Card Laws",
         .about_body     = ABOUT_CARDS,
         .demo_type      = SkidCityDemoBanned,
@@ -361,6 +416,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Bypass Smart Locks",
         .submenu_header = "Smart Lock Bypass",
         .demo_item      = "Open Any Lock",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Lock Bypass Laws",
         .about_body     = ABOUT_DOORS,
         .demo_type      = SkidCityDemoBanned,
@@ -369,6 +425,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Control Any TV",
         .submenu_header = "IR TV Control",
         .demo_item      = "IR Blast Demo",
+        .about_label    = "Legal Uses & IR Facts",
         .about_title    = "IR: The Legal One!",
         .about_body     = ABOUT_TV,
         .demo_type      = SkidCityDemoIrBlink,
@@ -377,6 +434,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Crash Airplane Systems",
         .submenu_header = "Aviation Systems",
         .demo_item      = "Interfere w/ Aircraft",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Aviation Interference",
         .about_body     = ABOUT_AIRPLANE,
         .demo_type      = SkidCityDemoFcc,
@@ -385,6 +443,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Jam Cell/GPS Signals",
         .submenu_header = "Signal Jamming",
         .demo_item      = "Jam 4G/LTE/GPS",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Signal Jamming Laws",
         .about_body     = ABOUT_JAMMER,
         .demo_type      = SkidCityDemoFcc,
@@ -393,6 +452,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Hack ATM / Bank",
         .submenu_header = "ATM / Bank Fraud",
         .demo_item      = "Skim ATM Cards",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Bank Fraud Laws",
         .about_body     = ABOUT_ATM,
         .demo_type      = SkidCityDemoBanned,
@@ -401,6 +461,7 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Jam Sub-GHz / RF",
         .submenu_header = "Sub-GHz RF Jamming",
         .demo_item      = "Jam Garage/Alarms",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "Sub-GHz Jamming Laws",
         .about_body     = ABOUT_RFJAM,
         .demo_type      = SkidCityDemoFcc,
@@ -409,9 +470,19 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Spam BLE / Bluetooth",
         .submenu_header = "Bluetooth LE Spam",
         .demo_item      = "Spam BLE Popups",
+        .about_label    = "Why is this Illegal?",
         .about_title    = "BLE Spam: Why Not",
         .about_body     = ABOUT_BLESPAM,
         .demo_type      = SkidCityDemoBanned,
+    },
+    [SkidCityFeatureIrAbuse] = {
+        .menu_label     = "Abuse IR Remotes",
+        .submenu_header = "IR Abuse",
+        .demo_item      = "IR Blast Demo",
+        .about_label    = "Illegal IR Uses",
+        .about_title    = "Illegal IR Uses",
+        .about_body     = ABOUT_IRABUSE,
+        .demo_type      = SkidCityDemoIrBlink,
     },
 };
 
@@ -566,30 +637,39 @@ static void skidcity_ir_draw_cb(Canvas* canvas, void* model) {
     canvas_draw_str(canvas, 2, 43, "RGB LED, not the IR TX.");
 
     if(m->transmitting) {
-        /* Bold transmitting indicator */
         canvas_set_color(canvas, ColorBlack);
-        canvas_draw_rbox(canvas, 14, 50, 100, 13, 3);
+        canvas_draw_rbox(canvas, 4, 50, 120, 13, 3);
         canvas_set_color(canvas, ColorWhite);
-        canvas_draw_str_aligned(canvas, 64, 57, AlignCenter, AlignBottom, "*** TRANSMITTING ***");
+        canvas_draw_str_aligned(canvas, 64, 56, AlignCenter, AlignCenter, "*** TRANSMITTING ***");
     } else {
         canvas_set_color(canvas, ColorBlack);
         canvas_draw_str_aligned(canvas, 64, 57, AlignCenter, AlignBottom, "Hold OK to transmit IR");
     }
 }
 
+/* Blink timer callback — toggles blue LED at ~8 Hz while transmitting */
+static void skidcity_ir_blink_cb(void* context) {
+    static bool state = false;
+    UNUSED(context);
+    state = !state;
+    furi_hal_light_set(LightBlue, state ? 0xFF : 0x00);
+}
+
 static bool skidcity_ir_input_cb(InputEvent* event, void* context) {
     SkidCityApp* app = context;
 
     if(event->key == InputKeyOk && event->type == InputTypePress) {
-        /* Start IR transmission */
-        skidcity_ir_tx_state.pos  = 0;
-        skidcity_ir_tx_state.done = false;
+        /* Guard: don't double-start */
+        if(app->ir_tx_active) return true;
+        skidcity_ir_tx_state.stop_requested = false;
+        skidcity_ir_tx_state.pos            = 0;
         furi_hal_infrared_async_tx_set_data_isr_callback(skidcity_ir_isr_cb, NULL);
         furi_hal_infrared_async_tx_start(38000, 0.33f);
-        /* Red LED as visible "transmitting" indicator */
-        furi_hal_light_set(LightRed,  0xFF);
-        furi_hal_light_set(LightGreen, 0x00);
-        furi_hal_light_set(LightBlue,  0x00);
+        app->ir_tx_active = true;
+        /* Start blue LED blink timer (~8 Hz = 125 ms period) */
+        app->ir_blink_timer =
+            furi_timer_alloc(skidcity_ir_blink_cb, FuriTimerTypePeriodic, NULL);
+        furi_timer_start(app->ir_blink_timer, 125);
         with_view_model(
             app->ir_view, IrDemoModel* model,
             { model->transmitting = true; },
@@ -597,10 +677,17 @@ static bool skidcity_ir_input_cb(InputEvent* event, void* context) {
         return true;
     }
 
-    if(event->key == InputKeyOk &&
-       (event->type == InputTypeRelease || event->type == InputTypeShort)) {
-        /* Stop IR and LED */
+    if(event->key == InputKeyOk && event->type == InputTypeRelease) {
+        /* Guard: only stop if we actually started */
+        if(!app->ir_tx_active) return true;
+        skidcity_ir_tx_state.stop_requested = true;
         furi_hal_infrared_async_tx_stop();
+        app->ir_tx_active = false;
+        if(app->ir_blink_timer) {
+            furi_timer_stop(app->ir_blink_timer);
+            furi_timer_free(app->ir_blink_timer);
+            app->ir_blink_timer = NULL;
+        }
         furi_hal_light_set(LightRed,   0x00);
         furi_hal_light_set(LightGreen, 0x00);
         furi_hal_light_set(LightBlue,  0x00);
@@ -730,7 +817,7 @@ void skidcity_scene_feature_menu_on_enter(void* context) {
         app->submenu, fi->demo_item,
         FEAT_EV_DEMO, skidcity_submenu_cb, app);
     submenu_add_item(
-        app->submenu, "Why is this Illegal?",
+        app->submenu, fi->about_label,
         FEAT_EV_ABOUT, skidcity_submenu_cb, app);
 
     if(fi->demo_type == SkidCityDemoBanned ||
@@ -824,11 +911,18 @@ void skidcity_scene_traffic_demo_on_exit(void* context) {
  * ═══════════════════════════════════════════════════════ */
 void skidcity_scene_generic_demo_on_enter(void* context) {
     SkidCityApp* app = context;
-    /* Reset transmitting state on entry */
+    /* Reset state */
+    app->ir_tx_active                   = false;
+    skidcity_ir_tx_state.stop_requested = false;
+    skidcity_ir_tx_state.pos            = 0;
     with_view_model(
         app->ir_view, IrDemoModel* model,
         { model->transmitting = false; },
         false);
+    /* Single blue flash on entry — hints the IR LED location */
+    furi_hal_light_set(LightBlue, 0xFF);
+    furi_delay_ms(120);
+    furi_hal_light_set(LightBlue, 0x00);
     view_dispatcher_switch_to_view(app->view_dispatcher, SkidCityViewIrDemo);
 }
 
@@ -840,8 +934,18 @@ bool skidcity_scene_generic_demo_on_event(void* context, SceneManagerEvent event
 
 void skidcity_scene_generic_demo_on_exit(void* context) {
     SkidCityApp* app = context;
-    /* Always ensure IR and LED are off when leaving */
-    furi_hal_infrared_async_tx_stop();
+    /* Only call stop() if TX was actually started — avoids furi_check crash */
+    if(app->ir_tx_active) {
+        skidcity_ir_tx_state.stop_requested = true;
+        furi_hal_infrared_async_tx_stop();
+        app->ir_tx_active = false;
+    }
+    /* Clean up blink timer if BACK was pressed while holding OK */
+    if(app->ir_blink_timer) {
+        furi_timer_stop(app->ir_blink_timer);
+        furi_timer_free(app->ir_blink_timer);
+        app->ir_blink_timer = NULL;
+    }
     furi_hal_light_set(LightRed,   0x00);
     furi_hal_light_set(LightGreen, 0x00);
     furi_hal_light_set(LightBlue,  0x00);
@@ -948,8 +1052,10 @@ static SkidCityApp* skidcity_app_alloc(void) {
     furi_check(app);
 
     app->current_feature = SkidCityFeatureTraffic;
-    app->header_timer   = NULL;
-    app->header_offset  = 0;
+    app->header_timer    = NULL;
+    app->header_offset   = 0;
+    app->ir_blink_timer  = NULL;
+    app->ir_tx_active    = false;
 
     /* Core services */
     app->gui           = furi_record_open(RECORD_GUI);
