@@ -11,6 +11,7 @@
 #include <notification/notification.h>
 #include <notification/notification_messages.h>
 #include <input/input.h>
+#include <furi_hal_infrared.h>
 
 /* ─────────────────────────────────────────────────────
  * Scene IDs — order MUST match skidcity_scene_config.h
@@ -35,6 +36,7 @@ typedef enum {
     SkidCityViewWidget,
     SkidCityViewTrafficDemo,
     SkidCityViewBanned,
+    SkidCityViewIrDemo,
 } SkidCityViewId;
 
 /* ─────────────────────────────────────────────────────
@@ -92,6 +94,10 @@ typedef struct {
     SkidCityBannedVariant variant;
 } BannedModel;
 
+typedef struct {
+    bool transmitting;
+} IrDemoModel;
+
 /* Application context */
 typedef struct {
     Gui*             gui;
@@ -102,6 +108,7 @@ typedef struct {
     NotificationApp* notifications;
     View*            traffic_view;
     View*            banned_view;
+    View*            ir_view;
     SkidCityFeature  current_feature;
     FuriTimer*       header_timer;
     uint8_t          header_offset;

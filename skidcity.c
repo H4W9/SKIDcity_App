@@ -51,11 +51,49 @@ static const SceneManagerHandlers skidcity_scene_handlers = {
 /* ═══════════════════════════════════════════════════════
  * LED NOTIFICATION SEQUENCES
  * ═══════════════════════════════════════════════════════ */
-static const NotificationSequence seq_ir_blink = {
-    &message_blue_255, &message_delay_10, &message_blue_0, &message_delay_50,
-    &message_blue_255, &message_delay_10, &message_blue_0, &message_delay_50,
-    &message_blue_255, &message_delay_10, &message_blue_0, NULL,
+/* ═══════════════════════════════════════════════════════
+ * IR DEMO — NEC signal: Samsung TV Power (addr=0x07 cmd=0x02)
+ * Pre-computed alternating mark/space durations in µs.
+ * Even indices = mark (carrier on), odd = space (carrier off).
+ * ═══════════════════════════════════════════════════════ */
+static const uint32_t skidcity_ir_signal[] = {
+    /* Leader */
+    9000, 4500,
+    /* Address 0x07 = 0000 0111 (LSB first) */
+    560,560,  560,560,  560,560,  560,1690,  560,1690,  560,1690,  560,560,  560,560,
+    /* ~Address 0xF8 = 1111 1000 (LSB first) */
+    560,1690, 560,1690, 560,1690, 560,560,   560,560,   560,560,   560,1690, 560,1690,
+    /* Command 0x02 = 0000 0010 (LSB first) */
+    560,560,  560,1690, 560,560,  560,560,   560,560,   560,560,   560,560,  560,560,
+    /* ~Command 0xFD = 1111 1101 (LSB first) */
+    560,1690, 560,560,  560,1690, 560,1690,  560,1690,  560,1690,  560,1690, 560,1690,
+    /* Stop bit */
+    560
 };
+static const size_t skidcity_ir_signal_len =
+    sizeof(skidcity_ir_signal) / sizeof(skidcity_ir_signal[0]);
+
+/* ISR state — must survive the async TX callback lifetime */
+typedef struct {
+    size_t   pos;
+    bool     done;
+} SkidCityIrTxState;
+static SkidCityIrTxState skidcity_ir_tx_state;
+
+static void skidcity_ir_isr_cb(void* ctx, bool* last, uint32_t* duration, bool* level) {
+    UNUSED(ctx);
+    SkidCityIrTxState* s = &skidcity_ir_tx_state;
+    if(s->pos >= skidcity_ir_signal_len) {
+        *last     = true;
+        *duration = 0;
+        *level    = false;
+        s->done   = true;
+        return;
+    }
+    *level    = (s->pos % 2 == 0); /* even = mark */
+    *duration = skidcity_ir_signal[s->pos++];
+    *last     = (s->pos >= skidcity_ir_signal_len);
+}
 
 /* ═══════════════════════════════════════════════════════
  * EDUCATIONAL TEXT CONTENT
@@ -137,16 +175,27 @@ static const NotificationSequence seq_ir_blink = {
     "written authorization."
 
 #define ABOUT_TV \
-    "Good news: controlling a TV\n" \
-    "with IR IS legal if it's your\n" \
-    "own TV (or you have consent).\n\n" \
-    "Blasting IR at random devices\n" \
-    "in public is obnoxious.\n\n" \
-    "The Flipper's IR is REAL!\n" \
-    "Build an IR remote database,\n" \
-    "learn the NEC/RC5 protocols,\n" \
-    "and make useful automations\n" \
-    "for YOUR home setup."
+    "Controlling your OWN TV\n" \
+    "with IR is 100% legal.\n\n" \
+    "WHERE IS THE IR LED?\n" \
+    "It\'s the small clear dome\n" \
+    "on the TOP edge of your\n" \
+    "Flipper, NOT the RGB LED\n" \
+    "on the front.\n\n" \
+    "WHY CAN\'T I SEE IT?\n" \
+    "IR light is ~940nm, outside\n" \
+    "the visible spectrum (380-\n" \
+    "700nm). Human eyes can\'t\n" \
+    "detect it at all.\n\n" \
+    "TIP: Point a phone camera\n" \
+    "at the top IR LED and hold\n" \
+    "OK on the demo screen.\n" \
+    "Most phone cameras can see\n" \
+    "IR - you\'ll see it pulse\n" \
+    "purple/white on screen.\n\n" \
+    "LEGAL USE: Build IR remote\n" \
+    "databases, learn NEC/RC5,\n" \
+    "automate YOUR home setup."
 
 #define ABOUT_AIRPLANE \
     "18 U.S.C. S32 - Interfering\n" \
@@ -497,6 +546,76 @@ static bool skidcity_traffic_input_cb(InputEvent* event, void* context) {
 }
 
 /* ═══════════════════════════════════════════════════════
+ * IR DEMO CUSTOM VIEW
+ * Shows instructions + "TRANSMITTING" status.
+ * OK hold: fires real IR + flashes red LED.
+ * ═══════════════════════════════════════════════════════ */
+static void skidcity_ir_draw_cb(Canvas* canvas, void* model) {
+    IrDemoModel* m = model;
+    canvas_clear(canvas);
+    canvas_set_color(canvas, ColorBlack);
+
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str_aligned(canvas, 64, 0, AlignCenter, AlignTop, "IR Transmitter Demo");
+
+    canvas_draw_line(canvas, 0, 12, 128, 12);
+
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str(canvas, 2, 23, "Blue LED just blinked?");
+    canvas_draw_str(canvas, 2, 33, "Just kidding. That's the");
+    canvas_draw_str(canvas, 2, 43, "RGB LED, not the IR TX.");
+
+    if(m->transmitting) {
+        /* Bold transmitting indicator */
+        canvas_set_color(canvas, ColorBlack);
+        canvas_draw_rbox(canvas, 14, 50, 100, 13, 3);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_str_aligned(canvas, 64, 57, AlignCenter, AlignBottom, "*** TRANSMITTING ***");
+    } else {
+        canvas_set_color(canvas, ColorBlack);
+        canvas_draw_str_aligned(canvas, 64, 57, AlignCenter, AlignBottom, "Hold OK to transmit IR");
+    }
+}
+
+static bool skidcity_ir_input_cb(InputEvent* event, void* context) {
+    SkidCityApp* app = context;
+
+    if(event->key == InputKeyOk && event->type == InputTypePress) {
+        /* Start IR transmission */
+        skidcity_ir_tx_state.pos  = 0;
+        skidcity_ir_tx_state.done = false;
+        furi_hal_infrared_async_tx_set_data_isr_callback(skidcity_ir_isr_cb, NULL);
+        furi_hal_infrared_async_tx_start(38000, 0.33f);
+        /* Red LED as visible "transmitting" indicator */
+        furi_hal_light_set(LightRed,  0xFF);
+        furi_hal_light_set(LightGreen, 0x00);
+        furi_hal_light_set(LightBlue,  0x00);
+        with_view_model(
+            app->ir_view, IrDemoModel* model,
+            { model->transmitting = true; },
+            true);
+        return true;
+    }
+
+    if(event->key == InputKeyOk &&
+       (event->type == InputTypeRelease || event->type == InputTypeShort)) {
+        /* Stop IR and LED */
+        furi_hal_infrared_async_tx_stop();
+        furi_hal_light_set(LightRed,   0x00);
+        furi_hal_light_set(LightGreen, 0x00);
+        furi_hal_light_set(LightBlue,  0x00);
+        with_view_model(
+            app->ir_view, IrDemoModel* model,
+            { model->transmitting = false; },
+            true);
+        return true;
+    }
+
+    if(event->key == InputKeyBack) return false;
+    return false;
+}
+
+/* ═══════════════════════════════════════════════════════
  * BANNED CUSTOM VIEW
  * ═══════════════════════════════════════════════════════ */
 static void skidcity_banned_draw_cb(Canvas* canvas, void* model) {
@@ -705,25 +824,12 @@ void skidcity_scene_traffic_demo_on_exit(void* context) {
  * ═══════════════════════════════════════════════════════ */
 void skidcity_scene_generic_demo_on_enter(void* context) {
     SkidCityApp* app = context;
-    widget_reset(app->widget);
-
-    notification_message(app->notifications, &seq_ir_blink);
-
-    widget_add_string_element(
-        app->widget, 64, 5, AlignCenter, AlignTop, FontPrimary, "IR Blast Demo");
-    widget_add_text_scroll_element(
-        app->widget, 0, 18, 128, 46,
-        "Blue LED just blinked!\n\n"
-        "That IS your Flipper's\n"
-        "IR transmitter firing.\n\n"
-        "It CAN control TVs, ACs,\n"
-        "projectors & more.\n\n"
-        "Build your own IR remote\n"
-        "database - this is legal!\n\n"
-        "Study NEC/RC5 protocols\n"
-        "and make home automations.");
-
-    view_dispatcher_switch_to_view(app->view_dispatcher, SkidCityViewWidget);
+    /* Reset transmitting state on entry */
+    with_view_model(
+        app->ir_view, IrDemoModel* model,
+        { model->transmitting = false; },
+        false);
+    view_dispatcher_switch_to_view(app->view_dispatcher, SkidCityViewIrDemo);
 }
 
 bool skidcity_scene_generic_demo_on_event(void* context, SceneManagerEvent event) {
@@ -734,7 +840,11 @@ bool skidcity_scene_generic_demo_on_event(void* context, SceneManagerEvent event
 
 void skidcity_scene_generic_demo_on_exit(void* context) {
     SkidCityApp* app = context;
-    widget_reset(app->widget);
+    /* Always ensure IR and LED are off when leaving */
+    furi_hal_infrared_async_tx_stop();
+    furi_hal_light_set(LightRed,   0x00);
+    furi_hal_light_set(LightGreen, 0x00);
+    furi_hal_light_set(LightBlue,  0x00);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -883,6 +993,15 @@ static SkidCityApp* skidcity_app_alloc(void) {
     view_dispatcher_add_view(
         app->view_dispatcher, SkidCityViewBanned, app->banned_view);
 
+    /* IR demo custom view */
+    app->ir_view = view_alloc();
+    view_set_context(app->ir_view, app);
+    view_allocate_model(app->ir_view, ViewModelTypeLocking, sizeof(IrDemoModel));
+    view_set_draw_callback(app->ir_view, skidcity_ir_draw_cb);
+    view_set_input_callback(app->ir_view, skidcity_ir_input_cb);
+    view_dispatcher_add_view(
+        app->view_dispatcher, SkidCityViewIrDemo, app->ir_view);
+
     return app;
 }
 
@@ -897,11 +1016,13 @@ static void skidcity_app_free(SkidCityApp* app) {
     view_dispatcher_remove_view(app->view_dispatcher, SkidCityViewWidget);
     view_dispatcher_remove_view(app->view_dispatcher, SkidCityViewTrafficDemo);
     view_dispatcher_remove_view(app->view_dispatcher, SkidCityViewBanned);
+    view_dispatcher_remove_view(app->view_dispatcher, SkidCityViewIrDemo);
 
     submenu_free(app->submenu);
     widget_free(app->widget);
     view_free(app->traffic_view);
     view_free(app->banned_view);
+    view_free(app->ir_view);
 
     view_dispatcher_free(app->view_dispatcher);
     scene_manager_free(app->scene_manager);
