@@ -1,5 +1,7 @@
 # SKIDcity
 
+<img width="512" height="256" alt="main_menu" src="https://github.com/user-attachments/assets/4d6cfe8c-7297-4476-8656-14cad3b535ef" />
+
 > *"Your flipper can't do that. and if it could, you'd be in federal prison."*
 
 ---
