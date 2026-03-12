@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SKIDCITY_VERSION "1.0"
+#define SKIDCITY_VERSION "1.1"
 
 /* Scrolling header: full string rotates through a display window */
 #define HEADER_STR  "  SKIDcity v" SKIDCITY_VERSION "  ~  Don't Be A SKID!  "
@@ -127,21 +127,26 @@ static FuriHalInfraredTxGetDataState
  * EDUCATIONAL TEXT CONTENT
  * ═══════════════════════════════════════════════════════ */
 #define ABOUT_TRAFFIC \
-    "Traffic lights use NTCIP\n" \
-    "protocols on closed, wired\n" \
-    "networks. NOT Sub-GHz.\n" \
-    "NOT IR. NOT NFC. Period.\n\n" \
-    "The Flipper has no NTCIP\n" \
-    "stack and no way to reach\n" \
-    "a wired traffic network.\n" \
-    "It physically cannot talk\n" \
-    "to a traffic controller.\n\n" \
-    "The 'police strobe trick'\n" \
-    "is an urban legend.\n\n" \
-    "LEGAL USE: Study ITS specs\n" \
-    "(NTCIP), get a career in\n" \
-    "traffic engineering, or\n" \
-    "volunteer for your city!"
+    "THIS IS EXTREMELY DANGEROUS.\n" \
+    "Interfering with traffic\n" \
+    "signals can kill people.\n\n" \
+    "18 U.S.C. S1362 - Malicious\n" \
+    "interference with transport\n" \
+    "infrastructure. Federal crime.\n" \
+    "State reckless endangerment\n" \
+    "charges stack on top.\n" \
+    "People HAVE gone to prison.\n\n" \
+    "Traffic lights run on closed\n" \
+    "wired NTCIP networks — not\n" \
+    "Sub-GHz, IR, or NFC. The\n" \
+    "Flipper cannot reach them.\n" \
+    "The 'police strobe' trick\n" \
+    "is a complete urban legend.\n\n" \
+    "LEGAL: Study ITS / NTCIP\n" \
+    "specs, pursue a career in\n" \
+    "traffic or civil engineering,\n" \
+    "or get involved with your\n" \
+    "city's transportation dept."
 
 #define ABOUT_WIFI \
     "18 U.S.C. S1030 - CFAA:\n" \
@@ -380,8 +385,8 @@ const SkidCityFeatureInfo skidcity_features[SkidCityFeatureCount] = {
         .menu_label     = "Hack Traffic Lights",
         .submenu_header = "Traffic Lights",
         .demo_item      = "Traffic Light Demo",
-        .about_label    = "Why is this Illegal?",
-        .about_title    = "Traffic Light Facts",
+        .about_label    = "Danger & The Law",
+        .about_title    = "Traffic Light Danger",
         .about_body     = ABOUT_TRAFFIC,
         .demo_type      = SkidCityDemoTrafficLed,
     },
