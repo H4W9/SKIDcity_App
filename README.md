@@ -2,7 +2,7 @@
 
 <img width="512" height="256" alt="main_menu" src="https://github.com/user-attachments/assets/4d6cfe8c-7297-4476-8656-14cad3b535ef" />
 
-> *"Your flipper can't do that. and if it could, you'd be in federal prison."*
+*"Your flipper can't do that. and if it could, you'd be in federal prison."*
 
 ---
 
@@ -14,7 +14,7 @@ not in a "gotcha" way. Genuinely — this app is for you, because those things g
 
 ---
 
-## what it does
+## What it does
 
 eleven menu items. Each one is something a script kiddie has asked about. You tap it, you get:
 
@@ -26,9 +26,9 @@ The banned screen is styled after the classic "your flipper is banned" meme for 
 
 ---
 
-## the menu
+## The menu
 
-| what you tap | what actually happens |
+| What you tap | What actually happens |
 |---|---|
 | Hack Traffic Lights | LED cycles red → yellow → green. UP/DOWN changes it. That's your "traffic control" |
 | Crash WiFi Networks | CFAA screen. 18 U.S.C. §1030. up to 10 years. |
@@ -46,7 +46,7 @@ Every single one of them also has legal alternatives — actual things you can s
 
 ---
 
-## the thing about BLE spam
+## The thing about BLE spam
 
 This one gets its own callout because people treat it like it's harmless.
 
@@ -56,7 +56,7 @@ The app says this directly. It's in the about screen. Not sorry about it.
 
 ---
 
-## building it
+## Building it
 
 standard ufbt external app. drop the folder anywhere and:
 
@@ -88,5 +88,5 @@ None of that requires you to target someone else's property. All of it requires 
 
 ---
 
-*SKIDcity v1.0 — Flipper Community*
+*SKIDcity — Flipper Community*
 *Stay curious. Stay legal.*
