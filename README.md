@@ -49,17 +49,9 @@ It's not. BLE spam — the fake Apple/Android/Samsung pairing popups — can int
 The app says this directly. It's in the about screen. Not sorry about it.
 
 
-## Building it
+## Requirements
 
-standard ufbt external app. drop the folder anywhere and:
-
-```sh
-ufbt launch APPSRC=skidcity
-```
-
-or just `ufbt` in the directory. it'll show up under **Tools** on your Flipper.
-
-requires firmware 0.82.3 or later (anything current is fine). no extra libs, no WiFi dev board needed, no SD card files. completely self-contained.
+Requires a Flipper Zero. no WiFi dev board needed, no SD card files. completely self-contained.
 
 
 ## Why this exists
