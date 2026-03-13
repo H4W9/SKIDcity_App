@@ -4,7 +4,7 @@
 
 *"Your flipper can't do that. and if it could, you'd be in federal prison."*
 
----
+
 
 So you got a Flipper Zero. Maybe you saw it on TikTok. Maybe some guy on Discord told you it could hack traffic lights, clone any card, crash wifi networks, and steal car keys. Maybe you bought it specifically to do one of those things.
 
@@ -12,7 +12,7 @@ This app is for you.
 
 not in a "gotcha" way. Genuinely — this app is for you, because those things get asked about **constantly** in every Flipper community, subreddit, and Discord server, and the people asking usually have no idea why the answer is always no. SKIDcity gives you the actual answer, every time, with a demo your Flipper *can* do instead.
 
----
+
 
 ## What it does
 
@@ -24,7 +24,7 @@ eleven menu items. Each one is something a script kiddie has asked about. You ta
 
 The banned screen is styled after the classic "your flipper is banned" meme for a reason. If you've been in the community for more than a week, you've seen it. It lands.
 
----
+
 
 ## The menu
 
@@ -44,7 +44,7 @@ The banned screen is styled after the classic "your flipper is banned" meme for 
 
 Every single one of them also has legal alternatives — actual things you can study, certifications worth getting, protocols worth learning. not just "don't do it." *Here's what to do instead.*
 
----
+
 
 ## The thing about BLE spam
 
@@ -54,7 +54,7 @@ It's not. BLE spam — the fake Apple/Android/Samsung pairing popups — can int
 
 The app says this directly. It's in the about screen. Not sorry about it.
 
----
+
 
 ## Building it
 
@@ -68,7 +68,7 @@ or just `ufbt` in the directory. it'll show up under **Tools** on your Flipper.
 
 requires firmware 0.82.3 or later (anything current is fine). no extra libs, no WiFi dev board needed, no SD card files. completely self-contained.
 
----
+
 
 ## Why this exists
 
@@ -78,7 +78,7 @@ SKIDcity types those sentences so they don't have to. pin it, link it, paste it.
 
 If someone learns something from it — actually looks up the NTCIP spec, actually starts studying for their ham ticket, actually reads ISO 14443 because now they're curious — then it worked.
 
----
+
 
 ## The actual spirit of the Flipper
 
@@ -86,7 +86,7 @@ The Flipper Zero is a legitimate research and learning tool. Sub-GHz protocol an
 
 None of that requires you to target someone else's property. All of it requires you to understand what you're doing. That's the difference between a researcher and a script kiddie, and it's the whole point of this app.
 
----
+
 
 *SKIDcity — Flipper Community*
 *Stay curious. Stay legal.*
