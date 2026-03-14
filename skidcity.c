@@ -733,7 +733,7 @@ static void skidcity_ir_draw_cb(Canvas* canvas, void* model) {
     canvas_draw_line(canvas, 0, 12, 128, 12);
 
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 2, 23, "Blue LED just blinked?");
+    canvas_draw_str(canvas, 2, 23, "The IR LED just blinked?");
     canvas_draw_str(canvas, 2, 33, "Just kidding. That's the");
     canvas_draw_str(canvas, 2, 43, "RGB LED, not the IR TX.");
 
